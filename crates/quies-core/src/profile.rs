@@ -184,20 +184,17 @@ pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
     let current = current_state();
     let target = profile.state.clone();
 
-    let mut notes = vec![];
+    // current/target の差分から operations を生成し始める
+    let operations = diff_audio_state(&current, &target);
 
-    if current.default_output.is_none() && target.default_output.is_none() {
-        notes.push("default output: unknown (CoreAudio not implemented)".to_string());
-    }
-    if current.default_input.is_none() && target.default_input.is_none() {
-        notes.push("default input: unknown (CoreAudio not implemented)".to_string());
-    }
+    let mut notes = vec![];
+    notes.push("current state: placeholder (CoreAudio not implemented)".to_string());
 
     Ok(ApplyPlan {
         profile_name: profile.name,
         current,
         target,
-        operations: vec![],
+        operations,
         notes,
     })
 }
