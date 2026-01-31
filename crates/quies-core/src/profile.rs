@@ -78,6 +78,7 @@ pub fn save_placeholder(name: &str) -> Result<Profile> {
     let profile = Profile {
         version: 1,
         name: name.to_string(),
+        state: AudioState::default(), // unknown (None)
         note: Some(PLACEHOLDER_NOTE.to_string()),
     };
 
