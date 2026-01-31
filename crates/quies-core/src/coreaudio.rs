@@ -33,15 +33,16 @@ fn translate_uid_to_device_id(uid: &str) -> Result<AudioDeviceID> {
 
     let mut device_id: AudioDeviceID = 0;
     let mut data_size = size_of::<AudioDeviceID>() as u32;
+    let cf_uid_ref: core_foundation::string::CFStringRef = cf_uid.as_concrete_TypeRef();
 
     let status = unsafe {
         AudioObjectGetPropertyData(
             kAudioObjectSystemObject,
             &address,
             size_of::<core_foundation::string::CFStringRef>() as u32,
-            (&cf_uid.as_concrete_TypeRef() as *const _).cast::<c_void>(),
+            (&cf_uid_ref as *const core_foundation::string::CFStringRef) as *const c_void,
             &mut data_size,
-            (&mut device_id as *mut AudioDeviceID).cast::<c_void>(),
+            (&mut device_id as *mut AudioDeviceID) as *mut c_void,
         )
     };
 
@@ -135,7 +136,7 @@ pub fn set_default_output_uid(uid: &str) -> Result<()> {
         mElement: kAudioObjectPropertyElementMain,
     };
 
-    let mut data_size = size_of::<AudioDeviceID>() as u32;
+    let data_size = size_of::<AudioDeviceID>() as u32;
 
     let status = unsafe {
         AudioObjectSetPropertyData(
@@ -161,7 +162,7 @@ pub fn set_default_input_uid(uid: &str) -> Result<()> {
         mElement: kAudioObjectPropertyElementMain,
     };
 
-    let mut data_size = size_of::<AudioDeviceID>() as u32;
+    let data_size = size_of::<AudioDeviceID>() as u32;
 
     let status = unsafe {
         AudioObjectSetPropertyData(

@@ -267,10 +267,25 @@ pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
 }
 
 pub fn apply(name: &str) -> Result<()> {
-    // plan は作れる（= profile が存在し、読み取れることは保証）
-    let _plan = apply_plan(name)?;
+    let plan = apply_plan(name)?;
 
-    bail!("apply is not implemented yet; try --dry-run");
+    // default output
+    if let Some(target_uid) = plan.target.default_output.as_deref() {
+        if plan.current.default_output.as_deref() != Some(target_uid) {
+            coreaudio::set_default_output_uid(target_uid)
+                .with_context(|| format!("failed to apply default_output to uid={target_uid}"))?;
+        }
+    }
+
+    // default input
+    if let Some(target_uid) = plan.target.default_input.as_deref() {
+        if plan.current.default_input.as_deref() != Some(target_uid) {
+            coreaudio::set_default_input_uid(target_uid)
+                .with_context(|| format!("failed to apply default_input to uid={target_uid}"))?;
+        }
+    }
+
+    Ok(())
 }
 
 pub fn dry_run_apply(name: &str) -> Result<String> {
