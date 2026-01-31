@@ -21,6 +21,34 @@ fn ensure_ok(status: OSStatus, msg: &'static str) -> Result<()> {
     }
 }
 
+fn translate_uid_to_device_id(uid: &str) -> Result<AudioDeviceID> {
+    // qualifier に CFStringRef (UID) を渡す
+    let cf_uid = CFString::new(uid);
+
+    let address = AudioObjectPropertyAddress {
+        mSelector: kAudioHardwarePropertyTranslateUIDToDevice,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain,
+    };
+
+    let mut device_id: AudioDeviceID = 0;
+    let mut data_size = size_of::<AudioDeviceID>() as u32;
+
+    let status = unsafe {
+        AudioObjectGetPropertyData(
+            kAudioObjectSystemObject,
+            &address,
+            size_of::<core_foundation::string::CFStringRef>() as u32,
+            (&cf_uid.as_concrete_TypeRef() as *const _).cast::<c_void>(),
+            &mut data_size,
+            (&mut device_id as *mut AudioDeviceID).cast::<c_void>(),
+        )
+    };
+
+    ensure_ok(status, "failed to translate device UID to device id")?;
+    Ok(device_id)
+}
+
 /// デフォルト入出力デバイスの AudioDeviceID を取る
 fn get_default_device_id(is_input: bool) -> Result<AudioDeviceID> {
     let selector = if is_input {
