@@ -117,25 +117,7 @@ fn command_profile_show(name: &str) -> Result<()> {
 }
 
 fn command_profile_save(name: &str) -> Result<()> {
-    let path = profile_path(name)?;
-
-    if path.exists() {
-        bail!("profile already exists: {name}");
-    }
-
-    let dir = profiles_dir()?;
-    fs::create_dir_all(&dir).with_context(|| format!("failed to create dir: {}", dir.display()))?;
-
-    // v1: ダミーの内容（将来 quies-core の Profile に置き換える）
-    let json = serde_json::json!({
-        "version": 1,
-        "name": name,
-        "note": "placeholder profile (no audio state yet)"
-    });
-
-    let s = serde_json::to_string_pretty(&json)?;
-    fs::write(&path, s).with_context(|| format!("failed to write profile: {}", path.display()))?;
-
+    quies_core::profile::save_placeholder(name)?;
     Ok(())
 }
 
