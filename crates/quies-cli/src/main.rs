@@ -1,7 +1,5 @@
-use anyhow::{bail, Context, Result};
+use anyhow::Result;
 use clap::{Parser, Subcommand};
-use std::fs;
-use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -60,82 +58,21 @@ fn main() -> Result<()> {
     }
 }
 
-fn profiles_dir() -> Result<PathBuf> {
-    // macOS: ~/Library/Application Support/quies/profiles
-    let base = dirs::data_dir().context("failed to resolve data_dir")?;
-    Ok(base.join("quies").join("profiles"))
-}
-
-fn profile_path(name: &str) -> Result<PathBuf> {
-    validate_profile_name(name)?;
-    Ok(profiles_dir()?.join(format!("{name}.json")))
-}
-
 fn command_profile_list() -> Result<()> {
-    let dir = profiles_dir()?;
-
-    if !dir.exists() {
-        // 初回はディレクトリが無いのが正常
-        return Ok(());
-    }
-
-    let mut names: Vec<String> = Vec::new();
-
-    for entry in
-        fs::read_dir(&dir).with_context(|| format!("failed to read dir: {}", dir.display()))?
-    {
-        let entry = entry?;
-        let path = entry.path();
-
-        // *.json だけ拾う
-        if path.extension().and_then(|s| s.to_str()) != Some("json") {
-            continue;
-        }
-
-        // file_stem を profile name として扱う
-        if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-            // v1 の制約に合うものだけ表示（壊れファイル混入対策）
-            if validate_profile_name(stem).is_ok() {
-                names.push(stem.to_string());
-            }
-        }
-    }
-
-    names.sort();
-    for n in names {
-        println!("{n}");
+    for name in quies_core::profile::list()? {
+        println!("{name}");
     }
     Ok(())
 }
 
 fn command_profile_show(name: &str) -> Result<()> {
-    let path = profile_path(name)?;
-    let s = fs::read_to_string(&path)
-        .with_context(|| format!("profile not found: {}", path.display()))?;
+    let s = quies_core::profile::show_pretty_json(name)?;
     print!("{s}");
     Ok(())
 }
 
 fn command_profile_save(name: &str) -> Result<()> {
-    let path = profile_path(name)?;
-
-    if path.exists() {
-        bail!("profile already exists: {name}");
-    }
-
-    let dir = profiles_dir()?;
-    fs::create_dir_all(&dir).with_context(|| format!("failed to create dir: {}", dir.display()))?;
-
-    // v1: ダミーの内容（将来 quies-core の Profile に置き換える）
-    let json = serde_json::json!({
-        "version": 1,
-        "name": name,
-        "note": "placeholder profile (no audio state yet)"
-    });
-
-    let s = serde_json::to_string_pretty(&json)?;
-    fs::write(&path, s).with_context(|| format!("failed to write profile: {}", path.display()))?;
-
+    quies_core::profile::save_placeholder(name)?;
     Ok(())
 }
 
@@ -149,29 +86,6 @@ fn command_profile_apply(name: &str, dry_run: bool) -> Result<()> {
 }
 
 fn command_profile_delete(name: &str) -> Result<()> {
-    let path = profile_path(name)?;
-
-    if !path.exists() {
-        bail!("profile not found: {name}");
-    }
-
-    fs::remove_file(&path).with_context(|| format!("failed to delete: {}", path.display()))?;
-
-    Ok(())
-}
-
-fn validate_profile_name(name: &str) -> Result<()> {
-    if name.is_empty() {
-        bail!("profile name must not be empty");
-    }
-    if name.len() > 64 {
-        bail!("profile name is too long (max 64)");
-    }
-    if !name
-        .chars()
-        .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
-    {
-        bail!("profile name may contain only [A-Za-z0-9-_]");
-    }
+    quies_core::profile::delete(name)?;
     Ok(())
 }

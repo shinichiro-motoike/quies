@@ -215,9 +215,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "dirs",
  "quies-core",
- "serde_json",
 ]
 
 [[package]]
@@ -225,6 +223,7 @@ name = "quies-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "dirs",
  "serde",
  "serde_json",
 ]
