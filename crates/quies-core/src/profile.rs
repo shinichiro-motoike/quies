@@ -2,6 +2,7 @@ use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
+use crate::coreaudio;
 
 const PLACEHOLDER_NOTE: &str = "placeholder profile (no audio state yet)";
 
