@@ -1,5 +1,6 @@
 use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand};
+use std::fs;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -50,27 +51,13 @@ fn main() -> Result<()> {
 
     match cli.command {
         Command::Profile { command } => match command {
-            ProfileCommand::List => {
-                let dir = profiles_dir()?;
-                println!("(todo) profile list: {}", dir.display());
-            }
-            ProfileCommand::Show { name } => {
-                let path = profile_path(&name)?;
-                println!("(todo) profile show: {} ({})", name, path.display());
-            }
-            ProfileCommand::Save { name } => println!("(todo) profile save: {name}"),
-            ProfileCommand::Apply { name, dry_run } => {
-                if dry_run {
-                    println!("(todo) profile apply (dry-run): {name}");
-                } else {
-                    println!("(todo) profile apply: {name}");
-                }
-            }
-            ProfileCommand::Delete { name } => println!("(todo) profile delete: {name}"),
+            ProfileCommand::List => command_profile_list(),
+            ProfileCommand::Show { name } => command_profile_show(&name),
+            ProfileCommand::Save { name } => command_profile_save(&name),
+            ProfileCommand::Apply { name, dry_run } => command_profile_apply(&name, dry_run),
+            ProfileCommand::Delete { name } => command_profile_delete(&name),
         },
     }
-
-    Ok(())
 }
 
 fn profiles_dir() -> Result<PathBuf> {
@@ -82,6 +69,69 @@ fn profiles_dir() -> Result<PathBuf> {
 fn profile_path(name: &str) -> Result<PathBuf> {
     validate_profile_name(name)?;
     Ok(profiles_dir()?.join(format!("{name}.json")))
+}
+
+fn command_profile_list() -> Result<()> {
+    let dir = profiles_dir()?;
+
+    if !dir.exists() {
+        // 初回はディレクトリが無いのが正常
+        return Ok(());
+    }
+
+    let mut names: Vec<String> = Vec::new();
+
+    for entry in
+        fs::read_dir(&dir).with_context(|| format!("failed to read dir: {}", dir.display()))?
+    {
+        let entry = entry?;
+        let path = entry.path();
+
+        // *.json だけ拾う
+        if path.extension().and_then(|s| s.to_str()) != Some("json") {
+            continue;
+        }
+
+        // file_stem を profile name として扱う
+        if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+            // v1 の制約に合うものだけ表示（壊れファイル混入対策）
+            if validate_profile_name(stem).is_ok() {
+                names.push(stem.to_string());
+            }
+        }
+    }
+
+    names.sort();
+    for n in names {
+        println!("{n}");
+    }
+    Ok(())
+}
+
+fn command_profile_show(name: &str) -> Result<()> {
+    let path = profile_path(name)?;
+    println!("(todo) profile show: {} ({})", name, path.display());
+    Ok(())
+}
+
+fn command_profile_save(name: &str) -> Result<()> {
+    println!("(todo) profile save: {name}");
+    Ok(())
+}
+
+fn command_profile_apply(name: &str, dry_run: bool) -> Result<()> {
+    if dry_run {
+        println!("(todo) profile apply (dry-run): {name}");
+    } else {
+        println!("(todo) profile apply: {name}");
+    }
+    Ok(())
+}
+
+fn command_profile_delete(name: &str) -> Result<()> {
+    let path = profile_path(name)?;
+    println!("(todo) profile delete: {} ({})", name, path.display());
+    Ok(())
 }
 
 fn validate_profile_name(name: &str) -> Result<()> {
