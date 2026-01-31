@@ -60,17 +60,6 @@ fn main() -> Result<()> {
     }
 }
 
-fn profiles_dir() -> Result<PathBuf> {
-    // macOS: ~/Library/Application Support/quies/profiles
-    let base = dirs::data_dir().context("failed to resolve data_dir")?;
-    Ok(base.join("quies").join("profiles"))
-}
-
-fn profile_path(name: &str) -> Result<PathBuf> {
-    validate_profile_name(name)?;
-    Ok(profiles_dir()?.join(format!("{name}.json")))
-}
-
 fn command_profile_list() -> Result<()> {
     for name in quies_core::profile::list()? {
         println!("{name}");
@@ -100,21 +89,5 @@ fn command_profile_apply(name: &str, dry_run: bool) -> Result<()> {
 
 fn command_profile_delete(name: &str) -> Result<()> {
     quies_core::profile::delete(name)?;
-    Ok(())
-}
-
-fn validate_profile_name(name: &str) -> Result<()> {
-    if name.is_empty() {
-        bail!("profile name must not be empty");
-    }
-    if name.len() > 64 {
-        bail!("profile name is too long (max 64)");
-    }
-    if !name
-        .chars()
-        .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
-    {
-        bail!("profile name may contain only [A-Za-z0-9-_]");
-    }
     Ok(())
 }
