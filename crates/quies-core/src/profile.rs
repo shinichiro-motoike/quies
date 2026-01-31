@@ -9,8 +9,23 @@ const PLACEHOLDER_NOTE: &str = "placeholder profile (no audio state yet)";
 pub struct Profile {
     pub version: u32,
     pub name: String,
+
+    #[serde(default)]
+    pub state: AudioState,
+
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AudioState {
+    /// default output device identifier (future: CoreAudio UID)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_output: Option<String>,
+
+    /// default input device identifier (future: CoreAudio UID)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_input: Option<String>,
 }
 
 #[derive(Debug, Clone)]
