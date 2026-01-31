@@ -1,4 +1,5 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
+use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
@@ -65,3 +66,14 @@ fn main() -> Result<()> {
 
     Ok(())
 }
+
+fn profiles_dir() -> Result<PathBuf> {
+    // macOS: ~/Library/Application Support/quies/profiles
+    let base = dirs::data_dir().context("failed to resolve data_dir")?;
+    Ok(base.join("quies").join("profiles"))
+}
+
+fn profile_path(name: &str) -> Result<PathBuf> {
+    Ok(profiles_dir()?.join(format!("{name}.json")))
+}
+
