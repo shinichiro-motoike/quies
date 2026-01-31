@@ -11,5 +11,6 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
+dirs = "5.0"
 anyhow.workspace = true
 quies-core = { path = "../quies-core" }
