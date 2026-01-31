@@ -124,6 +124,32 @@ pub fn save_current_state(name: &str) -> Result<Profile> {
     Ok(profile)
 }
 
+pub fn save_current_state_force(name: &str) -> Result<Profile> {
+    let path = profile_path(name)?;
+
+    let dir = profiles_dir()?;
+    fs::create_dir_all(&dir).with_context(|| format!("failed to create dir: {}", dir.display()))?;
+
+    let (state, notes) = current_state();
+    let note = if notes.is_empty() {
+        None
+    } else {
+        Some(notes.join("; "))
+    };
+
+    let profile = Profile {
+        version: 1,
+        name: name.to_string(),
+        state,
+        note,
+    };
+
+    let s = serde_json::to_string_pretty(&profile)?;
+    fs::write(&path, s).with_context(|| format!("failed to write profile: {}", path.display()))?;
+
+    Ok(profile)
+}
+
 pub fn delete(name: &str) -> Result<()> {
     let path = profile_path(name)?;
 
