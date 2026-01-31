@@ -31,6 +31,8 @@ pub struct AudioState {
 #[derive(Debug, Clone)]
 pub struct ApplyPlan {
     pub profile_name: String,
+    pub current: AudioState,
+    pub target: AudioState,
     pub operations: Vec<String>,
     pub notes: Vec<String>,
 }
