@@ -80,5 +80,22 @@ fn profiles_dir() -> Result<PathBuf> {
 }
 
 fn profile_path(name: &str) -> Result<PathBuf> {
+    validate_profile_name(name)?;
     Ok(profiles_dir()?.join(format!("{name}.json")))
+}
+
+fn validate_profile_name(name: &str) -> Result<()> {
+    if name.is_empty() {
+        bail!("profile name must not be empty");
+    }
+    if name.len() > 64 {
+        bail!("profile name is too long (max 64)");
+    }
+    if !name
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        bail!("profile name may contain only [A-Za-z0-9-_]");
+    }
+    Ok(())
 }
