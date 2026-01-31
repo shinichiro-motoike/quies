@@ -155,7 +155,7 @@ fn current_state() -> AudioState {
 
 fn diff_audio_state(current: &AudioState, target: &AudioState) -> Vec<String> {
     fn fmt(v: &Option<String>) -> &str {
-        v.as_deref().unwrap_or("unknown")
+        v.as_deref().unwrap_or("(unknown)")
     }
 
     let mut ops = Vec::new();
