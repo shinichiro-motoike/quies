@@ -72,38 +72,8 @@ fn profile_path(name: &str) -> Result<PathBuf> {
 }
 
 fn command_profile_list() -> Result<()> {
-    let dir = profiles_dir()?;
-
-    if !dir.exists() {
-        // 初回はディレクトリが無いのが正常
-        return Ok(());
-    }
-
-    let mut names: Vec<String> = Vec::new();
-
-    for entry in
-        fs::read_dir(&dir).with_context(|| format!("failed to read dir: {}", dir.display()))?
-    {
-        let entry = entry?;
-        let path = entry.path();
-
-        // *.json だけ拾う
-        if path.extension().and_then(|s| s.to_str()) != Some("json") {
-            continue;
-        }
-
-        // file_stem を profile name として扱う
-        if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-            // v1 の制約に合うものだけ表示（壊れファイル混入対策）
-            if validate_profile_name(stem).is_ok() {
-                names.push(stem.to_string());
-            }
-        }
-    }
-
-    names.sort();
-    for n in names {
-        println!("{n}");
+    for name in quies_core::profile::list()? {
+        println!("{name}");
     }
     Ok(())
 }
