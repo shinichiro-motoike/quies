@@ -1,8 +1,8 @@
+use crate::coreaudio;
 use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use crate::coreaudio;
 
 const PLACEHOLDER_NOTE: &str = "placeholder profile (no audio state yet)";
 
@@ -147,10 +147,21 @@ pub fn show_pretty_json(name: &str) -> Result<String> {
     Ok(serde_json::to_string_pretty(&profile)?)
 }
 
-fn current_state() -> AudioState {
-    AudioState {
-        default_output: Some("unknown-current".to_string()),
-        default_input: Some("unknown-current".to_string()),
+fn current_state() -> (AudioState, Vec<String>) {
+    match coreaudio::current_audio_state() {
+        Ok((default_output, default_input)) => (
+            AudioState {
+                default_output,
+                default_input,
+            },
+            vec![],
+        ),
+        Err(e) => (
+            AudioState::default(),
+            vec![format!(
+                "failed to read current audio state via CoreAudio: {e}"
+            )],
+        ),
     }
 }
 
@@ -182,13 +193,10 @@ fn diff_audio_state(current: &AudioState, target: &AudioState) -> Vec<String> {
 
 pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
     let profile = load(name)?;
-    let current = current_state();
+    let (current, notes) = current_state();
     let target = profile.state.clone();
 
-    // current/target の差分から operations を生成し始める
     let operations = diff_audio_state(&current, &target);
-
-    let notes = vec!["current state: placeholder (CoreAudio not implemented)".to_string()];
 
     Ok(ApplyPlan {
         profile_name: profile.name,
