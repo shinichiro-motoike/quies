@@ -166,6 +166,8 @@ pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
 
     Ok(ApplyPlan {
         profile_name: profile.name,
+        current,
+        target,
         operations: vec![],
         notes,
     })
