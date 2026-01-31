@@ -3,9 +3,10 @@ use core_foundation::base::TCFType;
 use core_foundation::string::CFString;
 use coreaudio_sys::{
     kAudioDevicePropertyDeviceUID, kAudioHardwarePropertyDefaultInputDevice,
-    kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyElementMain,
-    kAudioObjectPropertyScopeGlobal, kAudioObjectSystemObject, AudioDeviceID,
-    AudioObjectGetPropertyData, AudioObjectPropertyAddress, OSStatus,
+    kAudioHardwarePropertyDefaultOutputDevice, kAudioHardwarePropertyTranslateUIDToDevice,
+    kAudioObjectPropertyElementMain, kAudioObjectPropertyScopeGlobal, kAudioObjectSystemObject,
+    AudioDeviceID, AudioObjectGetPropertyData, AudioObjectPropertyAddress,
+    AudioObjectSetPropertyData, OSStatus,
 };
 use std::mem::size_of;
 use std::os::raw::c_void;
