@@ -187,8 +187,7 @@ pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
     // current/target の差分から operations を生成し始める
     let operations = diff_audio_state(&current, &target);
 
-    let mut notes = vec![];
-    notes.push("current state: placeholder (CoreAudio not implemented)".to_string());
+    let notes = vec!["current state: placeholder (CoreAudio not implemented)".to_string()];
 
     Ok(ApplyPlan {
         profile_name: profile.name,
