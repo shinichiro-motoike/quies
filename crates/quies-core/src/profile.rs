@@ -153,6 +153,32 @@ fn current_state() -> AudioState {
     }
 }
 
+fn diff_audio_state(current: &AudioState, target: &AudioState) -> Vec<String> {
+    fn fmt(v: &Option<String>) -> &str {
+        v.as_deref().unwrap_or("unknown")
+    }
+
+    let mut ops = Vec::new();
+
+    if current.default_output != target.default_output {
+        ops.push(format!(
+            "default_output: {} -> {}",
+            fmt(&current.default_output),
+            fmt(&target.default_output),
+        ));
+    }
+
+    if current.default_input != target.default_input {
+        ops.push(format!(
+            "default_input: {} -> {}",
+            fmt(&current.default_input),
+            fmt(&target.default_input),
+        ));
+    }
+
+    ops
+}
+
 pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
     let profile = load(name)?;
     let current = current_state();
