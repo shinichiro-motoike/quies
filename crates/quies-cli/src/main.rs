@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use std::path::PathBuf;
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -76,4 +76,3 @@ fn profiles_dir() -> Result<PathBuf> {
 fn profile_path(name: &str) -> Result<PathBuf> {
     Ok(profiles_dir()?.join(format!("{name}.json")))
 }
-
