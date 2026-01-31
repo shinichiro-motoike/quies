@@ -13,6 +13,13 @@ pub struct Profile {
     pub note: Option<String>,
 }
 
+#[derive(Debug, Clone)]
+pub struct ApplyPlan {
+    pub profile_name: String,
+    pub operations: Vec<String>,
+    pub notes: Vec<String>,
+}
+
 pub fn profiles_dir() -> Result<PathBuf> {
     // macOS: ~/Library/Application Support/quies/profiles
     let base = dirs::data_dir().context("failed to resolve data_dir")?;
