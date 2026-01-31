@@ -9,8 +9,23 @@ const PLACEHOLDER_NOTE: &str = "placeholder profile (no audio state yet)";
 pub struct Profile {
     pub version: u32,
     pub name: String,
+
+    #[serde(default)]
+    pub state: AudioState,
+
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AudioState {
+    /// default output device identifier (future: CoreAudio UID)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_output: Option<String>,
+
+    /// default input device identifier (future: CoreAudio UID)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_input: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -63,6 +78,7 @@ pub fn save_placeholder(name: &str) -> Result<Profile> {
     let profile = Profile {
         version: 1,
         name: name.to_string(),
+        state: AudioState::default(), // unknown (None)
         note: Some(PLACEHOLDER_NOTE.to_string()),
     };
 
@@ -128,17 +144,28 @@ pub fn show_pretty_json(name: &str) -> Result<String> {
     Ok(serde_json::to_string_pretty(&profile)?)
 }
 
+fn current_state() -> AudioState {
+    AudioState::default()
+}
+
 pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
     let profile = load(name)?;
+    let current = current_state();
+    let target = profile.state.clone();
 
-    // v1: CoreAudio 未実装なので、適用操作はまだ組み立てられない
+    let mut notes = vec![];
+
+    if current.default_output.is_none() && target.default_output.is_none() {
+        notes.push("default output: unknown (CoreAudio not implemented)".to_string());
+    }
+    if current.default_input.is_none() && target.default_input.is_none() {
+        notes.push("default input: unknown (CoreAudio not implemented)".to_string());
+    }
+
     Ok(ApplyPlan {
         profile_name: profile.name,
         operations: vec![],
-        notes: vec![
-            "audio state capture/apply is not implemented yet".to_string(),
-            "this is a placeholder plan (no changes will be made)".to_string(),
-        ],
+        notes,
     })
 }
 
@@ -151,7 +178,7 @@ pub fn dry_run_apply(name: &str) -> Result<String> {
     out.push_str("mode: dry-run\n");
 
     if plan.operations.is_empty() {
-        out.push_str("changes: (none)\n");
+        out.push_str("changes: (none or unknown)\n");
     } else {
         out.push_str("changes:\n");
         for op in &plan.operations {
