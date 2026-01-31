@@ -110,7 +110,9 @@ fn command_profile_list() -> Result<()> {
 
 fn command_profile_show(name: &str) -> Result<()> {
     let path = profile_path(name)?;
-    println!("(todo) profile show: {} ({})", name, path.display());
+    let s = fs::read_to_string(&path)
+        .with_context(|| format!("profile not found: {}", path.display()))?;
+    print!("{s}");
     Ok(())
 }
 
