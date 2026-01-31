@@ -65,6 +65,34 @@ pub fn save_placeholder(name: &str) -> Result<Profile> {
     Ok(profile)
 }
 
+pub fn list() -> Result<Vec<String>> {
+    let dir = profiles_dir()?;
+    if !dir.exists() {
+        return Ok(vec![]);
+    }
+
+    let mut names: Vec<String> = Vec::new();
+    for entry in
+        std::fs::read_dir(&dir).with_context(|| format!("failed to read dir: {}", dir.display()))?
+    {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.extension().and_then(|s| s.to_str()) != Some("json") {
+            continue;
+        }
+
+        if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+            if validate_profile_name(stem).is_ok() {
+                names.push(stem.to_string());
+            }
+        }
+    }
+
+    names.sort();
+    Ok(names)
+}
+
 pub fn load(name: &str) -> Result<Profile> {
     let path = profile_path(name)?;
     let s = fs::read_to_string(&path)
