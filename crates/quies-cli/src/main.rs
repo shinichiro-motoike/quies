@@ -52,23 +52,12 @@ fn main() -> Result<()> {
     match cli.command {
         Command::Profile { command } => match command {
             ProfileCommand::List => command_profile_list(),
-            ProfileCommand::Show { name } => {
-                let path = profile_path(&name)?;
-                println!("(todo) profile show: {} ({})", name, path.display());
-            }
-            ProfileCommand::Save { name } => println!("(todo) profile save: {name}"),
-            ProfileCommand::Apply { name, dry_run } => {
-                if dry_run {
-                    println!("(todo) profile apply (dry-run): {name}");
-                } else {
-                    println!("(todo) profile apply: {name}");
-                }
-            }
-            ProfileCommand::Delete { name } => println!("(todo) profile delete: {name}"),
+            ProfileCommand::Show { name } => command_profile_show(&name),
+            ProfileCommand::Save { name } => command_profile_save(&name),
+            ProfileCommand::Apply { name, dry_run } => command_profile_apply(&name, dry_run),
+            ProfileCommand::Delete { name } => command_profile_delete(&name),
         },
     }
-
-    Ok(())
 }
 
 fn profiles_dir() -> Result<PathBuf> {
@@ -116,6 +105,32 @@ fn command_profile_list() -> Result<()> {
     for n in names {
         println!("{n}");
     }
+    Ok(())
+}
+
+fn command_profile_show(name: &str) -> Result<()> {
+    let path = profile_path(name)?;
+    println!("(todo) profile show: {} ({})", name, path.display());
+    Ok(())
+}
+
+fn command_profile_save(name: &str) -> Result<()> {
+    println!("(todo) profile save: {name}");
+    Ok(())
+}
+
+fn command_profile_apply(name: &str, dry_run: bool) -> Result<()> {
+    if dry_run {
+        println!("(todo) profile apply (dry-run): {name}");
+    } else {
+        println!("(todo) profile apply: {name}");
+    }
+    Ok(())
+}
+
+fn command_profile_delete(name: &str) -> Result<()> {
+    let path = profile_path(name)?;
+    println!("(todo) profile delete: {} ({})", name, path.display());
     Ok(())
 }
 
