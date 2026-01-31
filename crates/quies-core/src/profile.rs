@@ -147,7 +147,36 @@ pub fn show_pretty_json(name: &str) -> Result<String> {
 }
 
 fn current_state() -> AudioState {
-    AudioState::default()
+    AudioState {
+        default_output: Some("unknown-current".to_string()),
+        default_input: Some("unknown-current".to_string()),
+    }
+}
+
+fn diff_audio_state(current: &AudioState, target: &AudioState) -> Vec<String> {
+    fn fmt(v: &Option<String>) -> &str {
+        v.as_deref().unwrap_or("(unknown)")
+    }
+
+    let mut ops = Vec::new();
+
+    if current.default_output != target.default_output {
+        ops.push(format!(
+            "default_output: {} -> {}",
+            fmt(&current.default_output),
+            fmt(&target.default_output),
+        ));
+    }
+
+    if current.default_input != target.default_input {
+        ops.push(format!(
+            "default_input: {} -> {}",
+            fmt(&current.default_input),
+            fmt(&target.default_input),
+        ));
+    }
+
+    ops
 }
 
 pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
@@ -155,20 +184,16 @@ pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
     let current = current_state();
     let target = profile.state.clone();
 
-    let mut notes = vec![];
+    // current/target の差分から operations を生成し始める
+    let operations = diff_audio_state(&current, &target);
 
-    if current.default_output.is_none() && target.default_output.is_none() {
-        notes.push("default output: unknown (CoreAudio not implemented)".to_string());
-    }
-    if current.default_input.is_none() && target.default_input.is_none() {
-        notes.push("default input: unknown (CoreAudio not implemented)".to_string());
-    }
+    let notes = vec!["current state: placeholder (CoreAudio not implemented)".to_string()];
 
     Ok(ApplyPlan {
         profile_name: profile.name,
         current,
         target,
-        operations: vec![],
+        operations,
         notes,
     })
 }
