@@ -125,3 +125,55 @@ pub fn current_audio_state() -> Result<(Option<String>, Option<String>)> {
 
     Ok((Some(out_uid), Some(in_uid)))
 }
+
+pub fn set_default_output_uid(uid: &str) -> Result<()> {
+    let device_id = translate_uid_to_device_id(uid).context("translate output uid")?;
+
+    let address = AudioObjectPropertyAddress {
+        mSelector: kAudioHardwarePropertyDefaultOutputDevice,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain,
+    };
+
+    let mut data_size = size_of::<AudioDeviceID>() as u32;
+
+    let status = unsafe {
+        AudioObjectSetPropertyData(
+            kAudioObjectSystemObject,
+            &address,
+            0,
+            ptr::null(),
+            data_size,
+            (&device_id as *const AudioDeviceID).cast::<c_void>(),
+        )
+    };
+
+    ensure_ok(status, "failed to set default output device")?;
+    Ok(())
+}
+
+pub fn set_default_input_uid(uid: &str) -> Result<()> {
+    let device_id = translate_uid_to_device_id(uid).context("translate input uid")?;
+
+    let address = AudioObjectPropertyAddress {
+        mSelector: kAudioHardwarePropertyDefaultInputDevice,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain,
+    };
+
+    let mut data_size = size_of::<AudioDeviceID>() as u32;
+
+    let status = unsafe {
+        AudioObjectSetPropertyData(
+            kAudioObjectSystemObject,
+            &address,
+            0,
+            ptr::null(),
+            data_size,
+            (&device_id as *const AudioDeviceID).cast::<c_void>(),
+        )
+    };
+
+    ensure_ok(status, "failed to set default input device")?;
+    Ok(())
+}
