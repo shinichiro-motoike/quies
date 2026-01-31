@@ -178,7 +178,7 @@ pub fn dry_run_apply(name: &str) -> Result<String> {
     out.push_str("mode: dry-run\n");
 
     if plan.operations.is_empty() {
-        out.push_str("changes: (none)\n");
+        out.push_str("changes: (none or unknown)\n");
     } else {
         out.push_str("changes:\n");
         for op in &plan.operations {
