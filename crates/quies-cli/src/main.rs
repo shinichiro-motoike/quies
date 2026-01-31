@@ -1,5 +1,6 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -49,8 +50,14 @@ fn main() -> Result<()> {
 
     match cli.command {
         Command::Profile { command } => match command {
-            ProfileCommand::List => println!("(todo) profile list"),
-            ProfileCommand::Show { name } => println!("(todo) profile show: {name}"),
+            ProfileCommand::List => {
+                let dir = profiles_dir()?;
+                println!("(todo) profile list: {}", dir.display());
+            }
+            ProfileCommand::Show { name } => {
+                let path = profile_path(&name)?;
+                println!("(todo) profile show: {} ({})", name, path.display());
+            }
             ProfileCommand::Save { name } => println!("(todo) profile save: {name}"),
             ProfileCommand::Apply { name, dry_run } => {
                 if dry_run {
@@ -64,4 +71,14 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn profiles_dir() -> Result<PathBuf> {
+    // macOS: ~/Library/Application Support/quies/profiles
+    let base = dirs::data_dir().context("failed to resolve data_dir")?;
+    Ok(base.join("quies").join("profiles"))
+}
+
+fn profile_path(name: &str) -> Result<PathBuf> {
+    Ok(profiles_dir()?.join(format!("{name}.json")))
 }
