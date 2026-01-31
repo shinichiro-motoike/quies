@@ -51,8 +51,7 @@ pub fn save_placeholder(name: &str) -> Result<Profile> {
     }
 
     let dir = profiles_dir()?;
-    fs::create_dir_all(&dir)
-        .with_context(|| format!("failed to create dir: {}", dir.display()))?;
+    fs::create_dir_all(&dir).with_context(|| format!("failed to create dir: {}", dir.display()))?;
 
     let profile = Profile {
         version: 1,
