@@ -65,6 +65,18 @@ pub fn save_placeholder(name: &str) -> Result<Profile> {
     Ok(profile)
 }
 
+pub fn delete(name: &str) -> Result<()> {
+    let path = profile_path(name)?;
+
+    if !path.exists() {
+        bail!("profile not found: {name}");
+    }
+
+    std::fs::remove_file(&path).with_context(|| format!("failed to delete: {}", path.display()))?;
+
+    Ok(())
+}
+
 pub fn list() -> Result<Vec<String>> {
     let dir = profiles_dir()?;
     if !dir.exists() {
