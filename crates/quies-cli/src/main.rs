@@ -51,10 +51,7 @@ fn main() -> Result<()> {
 
     match cli.command {
         Command::Profile { command } => match command {
-            ProfileCommand::List => {
-                let dir = profiles_dir()?;
-                println!("(todo) profile list: {}", dir.display());
-            }
+            ProfileCommand::List => command_profile_list(),
             ProfileCommand::Show { name } => {
                 let path = profile_path(&name)?;
                 println!("(todo) profile show: {} ({})", name, path.display());
@@ -83,6 +80,43 @@ fn profiles_dir() -> Result<PathBuf> {
 fn profile_path(name: &str) -> Result<PathBuf> {
     validate_profile_name(name)?;
     Ok(profiles_dir()?.join(format!("{name}.json")))
+}
+
+fn command_profile_list() -> Result<()> {
+    let dir = profiles_dir()?;
+
+    if !dir.exists() {
+        // 初回はディレクトリが無いのが正常
+        return Ok(());
+    }
+
+    let mut names: Vec<String> = Vec::new();
+
+    for entry in
+        fs::read_dir(&dir).with_context(|| format!("failed to read dir: {}", dir.display()))?
+    {
+        let entry = entry?;
+        let path = entry.path();
+
+        // *.json だけ拾う
+        if path.extension().and_then(|s| s.to_str()) != Some("json") {
+            continue;
+        }
+
+        // file_stem を profile name として扱う
+        if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+            // v1 の制約に合うものだけ表示（壊れファイル混入対策）
+            if validate_profile_name(stem).is_ok() {
+                names.push(stem.to_string());
+            }
+        }
+    }
+
+    names.sort();
+    for n in names {
+        println!("{n}");
+    }
+    Ok(())
 }
 
 fn validate_profile_name(name: &str) -> Result<()> {
