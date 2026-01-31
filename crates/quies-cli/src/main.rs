@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{bail, Result};
 use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
@@ -78,11 +78,12 @@ fn command_profile_save(name: &str) -> Result<()> {
 
 fn command_profile_apply(name: &str, dry_run: bool) -> Result<()> {
     if dry_run {
-        println!("(todo) profile apply (dry-run): {name}");
+        let s = quies_core::profile::dry_run_apply(name)?;
+        print!("{s}");
+        Ok(())
     } else {
-        println!("(todo) profile apply: {name}");
+        bail!("apply is not implemented yet; try --dry-run");
     }
-    Ok(())
 }
 
 fn command_profile_delete(name: &str) -> Result<()> {

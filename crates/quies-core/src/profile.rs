@@ -13,6 +13,13 @@ pub struct Profile {
     pub note: Option<String>,
 }
 
+#[derive(Debug, Clone)]
+pub struct ApplyPlan {
+    pub profile_name: String,
+    pub operations: Vec<String>,
+    pub notes: Vec<String>,
+}
+
 pub fn profiles_dir() -> Result<PathBuf> {
     // macOS: ~/Library/Application Support/quies/profiles
     let base = dirs::data_dir().context("failed to resolve data_dir")?;
@@ -119,4 +126,45 @@ pub fn load(name: &str) -> Result<Profile> {
 pub fn show_pretty_json(name: &str) -> Result<String> {
     let profile = load(name)?;
     Ok(serde_json::to_string_pretty(&profile)?)
+}
+
+pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
+    let profile = load(name)?;
+
+    // v1: CoreAudio 未実装なので、適用操作はまだ組み立てられない
+    Ok(ApplyPlan {
+        profile_name: profile.name,
+        operations: vec![],
+        notes: vec![
+            "audio state capture/apply is not implemented yet".to_string(),
+            "this is a placeholder plan (no changes will be made)".to_string(),
+        ],
+    })
+}
+
+pub fn dry_run_apply(name: &str) -> Result<String> {
+    let plan = apply_plan(name)?;
+
+    // ここが「差分表示」の器。将来 operations に具体的な変更が入る。
+    let mut out = String::new();
+    out.push_str(&format!("profile: {}\n", plan.profile_name));
+    out.push_str("mode: dry-run\n");
+
+    if plan.operations.is_empty() {
+        out.push_str("changes: (none)\n");
+    } else {
+        out.push_str("changes:\n");
+        for op in &plan.operations {
+            out.push_str(&format!("  - {op}\n"));
+        }
+    }
+
+    if !plan.notes.is_empty() {
+        out.push_str("notes:\n");
+        for n in &plan.notes {
+            out.push_str(&format!("  - {n}\n"));
+        }
+    }
+
+    Ok(out)
 }
