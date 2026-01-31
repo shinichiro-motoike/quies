@@ -31,6 +31,8 @@ pub struct AudioState {
 #[derive(Debug, Clone)]
 pub struct ApplyPlan {
     pub profile_name: String,
+    pub current: AudioState,
+    pub target: AudioState,
     pub operations: Vec<String>,
     pub notes: Vec<String>,
 }
@@ -164,18 +166,46 @@ pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
 
     Ok(ApplyPlan {
         profile_name: profile.name,
+        current,
+        target,
         operations: vec![],
         notes,
     })
 }
 
+pub fn apply(name: &str) -> Result<()> {
+    // plan は作れる（= profile が存在し、読み取れることは保証）
+    let _plan = apply_plan(name)?;
+
+    bail!("apply is not implemented yet; try --dry-run");
+}
+
 pub fn dry_run_apply(name: &str) -> Result<String> {
     let plan = apply_plan(name)?;
+    Ok(render_plan(&plan))
+}
 
-    // ここが「差分表示」の器。将来 operations に具体的な変更が入る。
+pub fn render_plan(plan: &ApplyPlan) -> String {
+    fn fmt_opt(v: &Option<String>) -> &str {
+        v.as_deref().unwrap_or("(unknown)")
+    }
+
     let mut out = String::new();
     out.push_str(&format!("profile: {}\n", plan.profile_name));
     out.push_str("mode: dry-run\n");
+
+    // schema-first: current/target を必ず表示（unknown でも）
+    out.push_str("state:\n");
+    out.push_str(&format!(
+        "  default_output: {} -> {}\n",
+        fmt_opt(&plan.current.default_output),
+        fmt_opt(&plan.target.default_output)
+    ));
+    out.push_str(&format!(
+        "  default_input:  {} -> {}\n",
+        fmt_opt(&plan.current.default_input),
+        fmt_opt(&plan.target.default_input)
+    ));
 
     if plan.operations.is_empty() {
         out.push_str("changes: (none or unknown)\n");
@@ -193,5 +223,5 @@ pub fn dry_run_apply(name: &str) -> Result<String> {
         }
     }
 
-    Ok(out)
+    out
 }

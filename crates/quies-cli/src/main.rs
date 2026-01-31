@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
@@ -82,7 +82,8 @@ fn command_profile_apply(name: &str, dry_run: bool) -> Result<()> {
         print!("{s}");
         Ok(())
     } else {
-        bail!("apply is not implemented yet; try --dry-run");
+        quies_core::profile::apply(name)?;
+        Ok(())
     }
 }
 
