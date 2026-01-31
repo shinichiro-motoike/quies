@@ -175,29 +175,7 @@ pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
 
 pub fn dry_run_apply(name: &str) -> Result<String> {
     let plan = apply_plan(name)?;
-
-    // ここが「差分表示」の器。将来 operations に具体的な変更が入る。
-    let mut out = String::new();
-    out.push_str(&format!("profile: {}\n", plan.profile_name));
-    out.push_str("mode: dry-run\n");
-
-    if plan.operations.is_empty() {
-        out.push_str("changes: (none or unknown)\n");
-    } else {
-        out.push_str("changes:\n");
-        for op in &plan.operations {
-            out.push_str(&format!("  - {op}\n"));
-        }
-    }
-
-    if !plan.notes.is_empty() {
-        out.push_str("notes:\n");
-        for n in &plan.notes {
-            out.push_str(&format!("  - {n}\n"));
-        }
-    }
-
-    Ok(out)
+    Ok(render_plan(&plan))
 }
 
 pub fn render_plan(plan: &ApplyPlan) -> String {
