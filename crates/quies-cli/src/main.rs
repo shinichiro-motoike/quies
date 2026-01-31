@@ -109,9 +109,7 @@ fn command_profile_list() -> Result<()> {
 }
 
 fn command_profile_show(name: &str) -> Result<()> {
-    let path = profile_path(name)?;
-    let s = fs::read_to_string(&path)
-        .with_context(|| format!("profile not found: {}", path.display()))?;
+    let s = quies_core::profile::show_pretty_json(name)?;
     print!("{s}");
     Ok(())
 }
