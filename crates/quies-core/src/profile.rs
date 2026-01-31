@@ -144,17 +144,28 @@ pub fn show_pretty_json(name: &str) -> Result<String> {
     Ok(serde_json::to_string_pretty(&profile)?)
 }
 
+fn current_state() -> AudioState {
+    AudioState::default()
+}
+
 pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
     let profile = load(name)?;
+    let current = current_state();
+    let target = profile.state.clone();
 
-    // v1: CoreAudio 未実装なので、適用操作はまだ組み立てられない
+    let mut notes = vec![];
+
+    if current.default_output.is_none() && target.default_output.is_none() {
+        notes.push("default output: unknown (CoreAudio not implemented)".to_string());
+    }
+    if current.default_input.is_none() && target.default_input.is_none() {
+        notes.push("default input: unknown (CoreAudio not implemented)".to_string());
+    }
+
     Ok(ApplyPlan {
         profile_name: profile.name,
         operations: vec![],
-        notes: vec![
-            "audio state capture/apply is not implemented yet".to_string(),
-            "this is a placeholder plan (no changes will be made)".to_string(),
-        ],
+        notes,
     })
 }
 
