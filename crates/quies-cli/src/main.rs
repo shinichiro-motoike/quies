@@ -30,7 +30,12 @@ enum ProfileCommand {
     Show { name: String },
 
     /// Save current state as a profile
-    Save { name: String },
+    Save {
+        name: String,
+        /// Overwrite if the profile already exists
+        #[arg(long)]
+        force: bool,
+    },
 
     /// Apply a profile
     Apply {
@@ -51,7 +56,7 @@ fn main() -> Result<()> {
         Command::Profile { command } => match command {
             ProfileCommand::List => command_profile_list(),
             ProfileCommand::Show { name } => command_profile_show(&name),
-            ProfileCommand::Save { name } => command_profile_save(&name),
+            ProfileCommand::Save { name, force } => command_profile_save(&name, force),
             ProfileCommand::Apply { name, dry_run } => command_profile_apply(&name, dry_run),
             ProfileCommand::Delete { name } => command_profile_delete(&name),
         },
@@ -71,8 +76,12 @@ fn command_profile_show(name: &str) -> Result<()> {
     Ok(())
 }
 
-fn command_profile_save(name: &str) -> Result<()> {
-    quies_core::profile::save_placeholder(name)?;
+fn command_profile_save(name: &str, force: bool) -> Result<()> {
+    if force {
+        quies_core::profile::save_current_state_force(name)?;
+    } else {
+        quies_core::profile::save_current_state(name)?;
+    }
     Ok(())
 }
 

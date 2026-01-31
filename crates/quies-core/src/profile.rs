@@ -1,3 +1,4 @@
+use crate::coreaudio;
 use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -90,6 +91,65 @@ pub fn save_placeholder(name: &str) -> Result<Profile> {
     Ok(profile)
 }
 
+/// v2: save current audio state (CoreAudio).
+/// - creates directory if missing
+/// - fails if profile already exists
+pub fn save_current_state(name: &str) -> Result<Profile> {
+    let path = profile_path(name)?;
+
+    if path.exists() {
+        bail!("profile already exists: {name}");
+    }
+
+    let dir = profiles_dir()?;
+    fs::create_dir_all(&dir).with_context(|| format!("failed to create dir: {}", dir.display()))?;
+
+    let (state, notes) = current_state();
+    let note = if notes.is_empty() {
+        None
+    } else {
+        Some(notes.join("; "))
+    };
+
+    let profile = Profile {
+        version: 1,
+        name: name.to_string(),
+        state,
+        note,
+    };
+
+    let s = serde_json::to_string_pretty(&profile)?;
+    fs::write(&path, s).with_context(|| format!("failed to write profile: {}", path.display()))?;
+
+    Ok(profile)
+}
+
+pub fn save_current_state_force(name: &str) -> Result<Profile> {
+    let path = profile_path(name)?;
+
+    let dir = profiles_dir()?;
+    fs::create_dir_all(&dir).with_context(|| format!("failed to create dir: {}", dir.display()))?;
+
+    let (state, notes) = current_state();
+    let note = if notes.is_empty() {
+        None
+    } else {
+        Some(notes.join("; "))
+    };
+
+    let profile = Profile {
+        version: 1,
+        name: name.to_string(),
+        state,
+        note,
+    };
+
+    let s = serde_json::to_string_pretty(&profile)?;
+    fs::write(&path, s).with_context(|| format!("failed to write profile: {}", path.display()))?;
+
+    Ok(profile)
+}
+
 pub fn delete(name: &str) -> Result<()> {
     let path = profile_path(name)?;
 
@@ -146,10 +206,21 @@ pub fn show_pretty_json(name: &str) -> Result<String> {
     Ok(serde_json::to_string_pretty(&profile)?)
 }
 
-fn current_state() -> AudioState {
-    AudioState {
-        default_output: Some("unknown-current".to_string()),
-        default_input: Some("unknown-current".to_string()),
+fn current_state() -> (AudioState, Vec<String>) {
+    match coreaudio::current_audio_state() {
+        Ok((default_output, default_input)) => (
+            AudioState {
+                default_output,
+                default_input,
+            },
+            vec![],
+        ),
+        Err(e) => (
+            AudioState::default(),
+            vec![format!(
+                "failed to read current audio state via CoreAudio: {e}"
+            )],
+        ),
     }
 }
 
@@ -181,13 +252,10 @@ fn diff_audio_state(current: &AudioState, target: &AudioState) -> Vec<String> {
 
 pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
     let profile = load(name)?;
-    let current = current_state();
+    let (current, notes) = current_state();
     let target = profile.state.clone();
 
-    // current/target の差分から operations を生成し始める
     let operations = diff_audio_state(&current, &target);
-
-    let notes = vec!["current state: placeholder (CoreAudio not implemented)".to_string()];
 
     Ok(ApplyPlan {
         profile_name: profile.name,
