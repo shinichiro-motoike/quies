@@ -173,6 +173,13 @@ pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
     })
 }
 
+pub fn apply(name: &str) -> Result<()> {
+    // plan は作れる（= profile が存在し、読み取れることは保証）
+    let _plan = apply_plan(name)?;
+
+    bail!("apply is not implemented yet; try --dry-run");
+}
+
 pub fn dry_run_apply(name: &str) -> Result<String> {
     let plan = apply_plan(name)?;
     Ok(render_plan(&plan))
