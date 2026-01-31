@@ -72,7 +72,7 @@ fn command_profile_show(name: &str) -> Result<()> {
 }
 
 fn command_profile_save(name: &str) -> Result<()> {
-    quies_core::profile::save_placeholder(name)?;
+    quies_core::profile::save_current_state(name)?;
     Ok(())
 }
 
