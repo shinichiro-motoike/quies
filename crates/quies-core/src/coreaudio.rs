@@ -63,19 +63,18 @@ fn get_device_uid(device_id: AudioDeviceID) -> Result<String> {
 
     // out は CFStringRef
     let mut cf_str_ref: core_foundation::string::CFStringRef = ptr::null_mut();
-let mut data_size = size_of::<core_foundation::string::CFStringRef>() as u32;
+    let mut data_size = size_of::<core_foundation::string::CFStringRef>() as u32;
 
-let status = unsafe {
-    AudioObjectGetPropertyData(
-        device_id,
-        &address,
-        0,
-        ptr::null(),
-        &mut data_size,
-        (&mut cf_str_ref as *mut core_foundation::string::CFStringRef) as *mut c_void,
-    )
-};
-
+    let status = unsafe {
+        AudioObjectGetPropertyData(
+            device_id,
+            &address,
+            0,
+            ptr::null(),
+            &mut data_size,
+            (&mut cf_str_ref as *mut core_foundation::string::CFStringRef) as *mut c_void,
+        )
+    };
 
     ensure_ok(status, "failed to get device UID")?;
     if cf_str_ref.is_null() {
