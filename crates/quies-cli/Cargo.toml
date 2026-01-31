@@ -5,4 +5,10 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 
+[[bin]]
+name = "quies"
+path = "src/main.rs"
+
 [dependencies]
+anyhow.workspace = true
+quies-core = { path = "../quies-core" }
