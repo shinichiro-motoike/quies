@@ -99,14 +99,7 @@ fn command_profile_apply(name: &str, dry_run: bool) -> Result<()> {
 }
 
 fn command_profile_delete(name: &str) -> Result<()> {
-    let path = profile_path(name)?;
-
-    if !path.exists() {
-        bail!("profile not found: {name}");
-    }
-
-    fs::remove_file(&path).with_context(|| format!("failed to delete: {}", path.display()))?;
-
+    quies_core::profile::delete(name)?;
     Ok(())
 }
 
