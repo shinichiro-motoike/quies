@@ -3,9 +3,10 @@ use core_foundation::base::TCFType;
 use core_foundation::string::CFString;
 use coreaudio_sys::{
     kAudioDevicePropertyDeviceUID, kAudioHardwarePropertyDefaultInputDevice,
-    kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyElementMain,
-    kAudioObjectPropertyScopeGlobal, kAudioObjectSystemObject, AudioDeviceID,
-    AudioObjectGetPropertyData, AudioObjectPropertyAddress, OSStatus,
+    kAudioHardwarePropertyDefaultOutputDevice, kAudioHardwarePropertyTranslateUIDToDevice,
+    kAudioObjectPropertyElementMain, kAudioObjectPropertyScopeGlobal, kAudioObjectSystemObject,
+    AudioDeviceID, AudioObjectGetPropertyData, AudioObjectPropertyAddress,
+    AudioObjectSetPropertyData, OSStatus,
 };
 use std::mem::size_of;
 use std::os::raw::c_void;
@@ -18,6 +19,35 @@ fn ensure_ok(status: OSStatus, msg: &'static str) -> Result<()> {
     } else {
         anyhow::bail!("{msg} (OSStatus={status})");
     }
+}
+
+fn translate_uid_to_device_id(uid: &str) -> Result<AudioDeviceID> {
+    // qualifier に CFStringRef (UID) を渡す
+    let cf_uid = CFString::new(uid);
+
+    let address = AudioObjectPropertyAddress {
+        mSelector: kAudioHardwarePropertyTranslateUIDToDevice,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain,
+    };
+
+    let mut device_id: AudioDeviceID = 0;
+    let mut data_size = size_of::<AudioDeviceID>() as u32;
+    let cf_uid_ref: core_foundation::string::CFStringRef = cf_uid.as_concrete_TypeRef();
+
+    let status = unsafe {
+        AudioObjectGetPropertyData(
+            kAudioObjectSystemObject,
+            &address,
+            size_of::<core_foundation::string::CFStringRef>() as u32,
+            (&cf_uid_ref as *const core_foundation::string::CFStringRef) as *const c_void,
+            &mut data_size,
+            (&mut device_id as *mut AudioDeviceID) as *mut c_void,
+        )
+    };
+
+    ensure_ok(status, "failed to translate device UID to device id")?;
+    Ok(device_id)
 }
 
 /// デフォルト入出力デバイスの AudioDeviceID を取る
@@ -95,4 +125,56 @@ pub fn current_audio_state() -> Result<(Option<String>, Option<String>)> {
     let in_uid = get_device_uid(in_id).context("get input device uid")?;
 
     Ok((Some(out_uid), Some(in_uid)))
+}
+
+pub fn set_default_output_uid(uid: &str) -> Result<()> {
+    let device_id = translate_uid_to_device_id(uid).context("translate output uid")?;
+
+    let address = AudioObjectPropertyAddress {
+        mSelector: kAudioHardwarePropertyDefaultOutputDevice,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain,
+    };
+
+    let data_size = size_of::<AudioDeviceID>() as u32;
+
+    let status = unsafe {
+        AudioObjectSetPropertyData(
+            kAudioObjectSystemObject,
+            &address,
+            0,
+            ptr::null(),
+            data_size,
+            (&device_id as *const AudioDeviceID).cast::<c_void>(),
+        )
+    };
+
+    ensure_ok(status, "failed to set default output device")?;
+    Ok(())
+}
+
+pub fn set_default_input_uid(uid: &str) -> Result<()> {
+    let device_id = translate_uid_to_device_id(uid).context("translate input uid")?;
+
+    let address = AudioObjectPropertyAddress {
+        mSelector: kAudioHardwarePropertyDefaultInputDevice,
+        mScope: kAudioObjectPropertyScopeGlobal,
+        mElement: kAudioObjectPropertyElementMain,
+    };
+
+    let data_size = size_of::<AudioDeviceID>() as u32;
+
+    let status = unsafe {
+        AudioObjectSetPropertyData(
+            kAudioObjectSystemObject,
+            &address,
+            0,
+            ptr::null(),
+            data_size,
+            (&device_id as *const AudioDeviceID).cast::<c_void>(),
+        )
+    };
+
+    ensure_ok(status, "failed to set default input device")?;
+    Ok(())
 }
