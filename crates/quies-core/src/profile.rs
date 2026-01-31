@@ -147,7 +147,10 @@ pub fn show_pretty_json(name: &str) -> Result<String> {
 }
 
 fn current_state() -> AudioState {
-    AudioState::default()
+    AudioState {
+        default_output: Some("unknown-current".to_string()),
+        default_input: Some("unknown-current".to_string()),
+    }
 }
 
 pub fn apply_plan(name: &str) -> Result<ApplyPlan> {
