@@ -1,5 +1,6 @@
 use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand};
+use std::fs;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
