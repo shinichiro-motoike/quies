@@ -217,6 +217,7 @@ dependencies = [
  "clap",
  "dirs",
  "quies-core",
+ "serde_json",
 ]
 
 [[package]]
