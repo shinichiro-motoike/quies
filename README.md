@@ -145,6 +145,9 @@ This project is **actively developed**.
 Core functionality (save / apply / dry-run) is implemented,  
 but internal APIs and output formats may still evolve.
 
+## Integrations
+- [Using quies with Hammerspoon](docs/hammerspoon.md)
+
 ---
 
 ## License
