@@ -23,30 +23,25 @@ enum Command {
 
 #[derive(Subcommand, Debug)]
 enum ProfileCommand {
-    /// List saved profiles
     List,
-
-    /// Show a profile JSON
-    Show { name: String },
-
-    /// Save current state as a profile
+    Show {
+        name: String,
+    },
     Save {
         name: String,
         /// Overwrite if the profile already exists
         #[arg(long)]
         force: bool,
     },
-
-    /// Apply a profile
     Apply {
         name: String,
         /// Only show what would change
         #[arg(long)]
         dry_run: bool,
     },
-
-    /// Delete a profile
-    Delete { name: String },
+    Delete {
+        name: String,
+    },
 }
 
 fn main() -> Result<()> {
