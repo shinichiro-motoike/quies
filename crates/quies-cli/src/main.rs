@@ -89,11 +89,10 @@ fn command_profile_apply(name: &str, dry_run: bool) -> Result<()> {
     if dry_run {
         let s = quies_core::profile::dry_run_apply(name)?;
         print!("{s}");
-        Ok(())
     } else {
         quies_core::profile::apply(name)?;
-        Ok(())
     }
+    Ok(())
 }
 
 fn command_profile_delete(name: &str) -> Result<()> {
